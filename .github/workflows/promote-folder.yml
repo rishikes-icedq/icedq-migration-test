@@ -1,0 +1,69 @@
+name: Promote Folder from DEV to UAT
+
+on:
+  workflow_dispatch:
+    inputs:
+      folder-id:
+        description: "UUID of the folder to export from Dev"
+        required: true
+        default: "REPLACE_WITH_YOUR_FOLDER_UUID"
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    environment: DEV
+    outputs:
+      task-id:     ${{ steps.export.outputs.task-id }}
+      status:      ${{ steps.export.outputs.status }}
+      bundle-path: ${{ steps.export.outputs.bundle-path }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Export folder from Dev
+        id: export
+        uses: icedq-tools/export-action@v1
+        with:
+          icedq-url:       ${{ vars.ICEDQ_URL }}
+          keycloak-url:    ${{ vars.ICEDQ_KEYCLOAK_URL }}
+          client-id:       ${{ secrets.ICEDQ_CLIENT_ID }}
+          client-secret:   ${{ secrets.ICEDQ_CLIENT_SECRET }}
+          org-id:          ${{ secrets.ICEDQ_ORG_ID }}
+          account-id:      ${{ vars.ICEDQ_ACCOUNT_ID }}
+          workspace-id:    ${{ vars.ICEDQ_WORKSPACE_ID }}
+          resource:        folder
+          resource-id:     ${{ inputs.folder-id }}
+          include-child:   true
+          output-file:     ./exports/bundle.zip
+          upload-artifact: true
+          artifact-name:   icedq-folder-bundle-test-ga
+
+  import:
+    runs-on: ubuntu-latest
+    needs: export
+    environment: UAT
+    steps:
+      - name: Checkout repo (for mapping file)
+        uses: actions/checkout@v4
+
+      - name: Download bundle from export job
+        uses: actions/download-artifact@v4
+        with:
+          name: icedq-folder-bundle-test-ga
+          path: ./exports
+
+      - name: Import folder into UAT
+        uses: icedq-tools/import-action@v1
+        with:
+          icedq-url:             ${{ vars.ICEDQ_URL }}
+          keycloak-url:          ${{ vars.ICEDQ_KEYCLOAK_URL }}
+          client-id:             ${{ secrets.ICEDQ_CLIENT_ID }}
+          client-secret:         ${{ secrets.ICEDQ_CLIENT_SECRET }}
+          org-id:                ${{ secrets.ICEDQ_ORG_ID }}
+          account-id:            ${{ vars.ICEDQ_ACCOUNT_ID }}
+          workspace-id:          ${{ vars.ICEDQ_WORKSPACE_ID }}
+          bundle:                ./exports/bundle.zip
+          kind:                  workflows
+          mapping-file:          ./mappings/dev-to-uat.json
+          strict:                false
+          terminate-on-conflict: true
