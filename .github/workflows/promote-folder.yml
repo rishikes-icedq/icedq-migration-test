@@ -22,7 +22,7 @@ jobs:
 
       - name: Export folder from Dev
         id: export
-        uses: icedq-tools/export-action@v1
+        uses: icedq-tools/export-action@main
         with:
           icedq-url:       ${{ vars.ICEDQ_URL }}
           keycloak-url:    ${{ vars.ICEDQ_KEYCLOAK_URL }}
@@ -53,7 +53,7 @@ jobs:
           path: ./exports
 
       - name: Import folder into UAT
-        uses: icedq-tools/import-action@v1
+        uses: icedq-tools/import-action@main
         with:
           icedq-url:             ${{ vars.ICEDQ_URL }}
           keycloak-url:          ${{ vars.ICEDQ_KEYCLOAK_URL }}
