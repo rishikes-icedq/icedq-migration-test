@@ -32,7 +32,7 @@ jobs:
           account-id:      ${{ vars.ICEDQ_ACCOUNT_ID }}
           workspace-id:    ${{ vars.ICEDQ_WORKSPACE_ID }}
           resource:        folder
-          resource-id:     ${{ inputs.folder-id }}
+          id:              ${{ inputs.folder-id }}
           include-child:   true
           output-file:     ./exports/bundle.zip
           upload-artifact: true
