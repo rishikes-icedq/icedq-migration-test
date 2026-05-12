@@ -26,11 +26,11 @@ jobs:
         with:
           icedq-url:       ${{ vars.ICEDQ_URL }}
           keycloak-url:    ${{ vars.ICEDQ_KEYCLOAK_URL }}
+          org-id:          ${{ vars.ICEDQ_ORG_ID }}
           client-id:       ${{ secrets.ICEDQ_CLIENT_ID }}
           client-secret:   ${{ secrets.ICEDQ_CLIENT_SECRET }}
-          org-id:          ${{ secrets.ICEDQ_ORG_ID }}
-          account-id:      ${{ vars.ICEDQ_ACCOUNT_ID }}
-          workspace-id:    ${{ vars.ICEDQ_WORKSPACE_ID }}
+          account-id:      ${{ secrets.ICEDQ_ACCOUNT_ID }}
+          workspace-id:    ${{ secrets.ICEDQ_WORKSPACE_ID }}
           resource:        folder
           id:              ${{ inputs.folder-id }}
           include-child:   true
@@ -57,11 +57,11 @@ jobs:
         with:
           icedq-url:             ${{ vars.ICEDQ_URL }}
           keycloak-url:          ${{ vars.ICEDQ_KEYCLOAK_URL }}
+          org-id:                ${{ vars.ICEDQ_ORG_ID }}
           client-id:             ${{ secrets.ICEDQ_CLIENT_ID }}
           client-secret:         ${{ secrets.ICEDQ_CLIENT_SECRET }}
-          org-id:                ${{ secrets.ICEDQ_ORG_ID }}
-          account-id:            ${{ vars.ICEDQ_ACCOUNT_ID }}
-          workspace-id:          ${{ vars.ICEDQ_WORKSPACE_ID }}
+          account-id:            ${{ secrets.ICEDQ_ACCOUNT_ID }}
+          workspace-id:          ${{ secrets.ICEDQ_WORKSPACE_ID }}
           bundle:                ./exports/bundle.zip
           kind:                  workflows
           mapping-file:          ./mappings/dev-to-uat.json
