@@ -37,6 +37,7 @@ jobs:
           output-file:     ./exports/bundle.zip
           upload-artifact: true
           artifact-name:   icedq-folder-bundle-test-ga
+          verify-ssl:      ${{ vars.ICEDQ_VERIFY_SSL }}
 
   import:
     runs-on: ubuntu-latest
@@ -67,3 +68,4 @@ jobs:
           mapping-file:          ./mappings/dev-to-uat.json
           strict:                false
           terminate-on-conflict: true
+          verify-ssl:            ${{ vars.ICEDQ_VERIFY_SSL }}
