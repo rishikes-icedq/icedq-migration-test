@@ -1,9 +1,12 @@
 {
-  "version": "0.1",
-  "entries": [
-    {
-      "sourceId": "fldr-bbbe4faa-af84-5681-aa2b-dbf7a335bffa",
-      "targetId": "fldr-04b477d7-adfe-5146-b594-681369ce22a0"
-    }
-  ]
+  "useFqn": true,
+  "mapping": {
+    "connections": [
+      {
+        "existingId": "conn-7651da4f-0ad5-5708-a9b6-075a906a2885",
+        "newId": "conn-7651da4f-0ad5-5708-a9b6-075a906a2885",
+        "action": "override"
+      }
+    ]
+  }
 }
