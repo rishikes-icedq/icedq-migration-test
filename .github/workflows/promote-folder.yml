@@ -42,7 +42,7 @@ jobs:
   import:
     runs-on: ubuntu-latest
     needs: export
-    environment: SOURCE
+    environment: TARGET
     steps:
       - name: Checkout repo (for mapping file)
         uses: actions/checkout@v4
