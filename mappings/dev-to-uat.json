@@ -3,8 +3,8 @@
   "mapping": {
     "connections": [
       {
-        "existingId": "conn-294241ac-43ec-535a-af2d-cf098e75a219",
-        "newId": "conn-6d12ad00-a584-5a7b-b3d3-3a53bcaa9160",
+        "existingId": "conn-fe26cf74-b09a-5ac7-b486-fc378e0a3ecf",
+        "newId": "conn-294241ac-43ec-535a-af2d-cf098e75a219",
         "action": "override"
       }
     ]
