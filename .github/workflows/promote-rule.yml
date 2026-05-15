@@ -1,12 +1,12 @@
-name: Promote Folder from Soruce to Target
+name: Promote Rule from Soruce to Target
 
 on:
   workflow_dispatch:
     inputs:
-      folder-id:
-        description: "UUID of the folder to export from Soruce"
+      rule-id:
+        description: "UUID of the rule to export from Soruce"
         required: true
-        default: "REPLACE_WITH_YOUR_FOLDER_UUID"
+        default: "REPLACE_WITH_YOUR_RULE_UUID"
 
 jobs:
   export:
@@ -20,7 +20,7 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Export folder from Soruce environment
+      - name: Export rule from Source environment
         id: export
         uses: icedq-tools/export-action@main
         with:
@@ -31,11 +31,10 @@ jobs:
           client-secret:   ${{ secrets.ICEDQ_CLIENT_SECRET }}
           account-id:      ${{ vars.ICEDQ_ACCOUNT_ID }}
           workspace-id:    ${{ vars.ICEDQ_WORKSPACE_ID }}
-          resource:        folder
-          id:              ${{ inputs.folder-id }}
-          include-child:   true
+          resource:        rule
+          id:              ${{ inputs.rule-id }}
           output-file:     ./exports/bundle.zip
-          artifact-name:   icedq-folder-bundle
+          artifact-name:   icedq-rule-bundle
           verify-ssl:      ${{ vars.ICEDQ_VERIFY_SSL }}
 
   import:
@@ -49,10 +48,10 @@ jobs:
       - name: Download bundle from export job
         uses: actions/download-artifact@v4
         with:
-          name: icedq-folder-bundle
+          name: icedq-rule-bundle
           path: ./exports
 
-      - name: Import folder into Target environment
+      - name: Import rule into Target environment
         uses: icedq-tools/import-action@main
         with:
           icedq-url:             ${{ vars.ICEDQ_URL }}
@@ -63,8 +62,8 @@ jobs:
           account-id:            ${{ vars.ICEDQ_ACCOUNT_ID }}
           workspace-id:          ${{ vars.ICEDQ_WORKSPACE_ID }}
           bundle:                ./exports/bundle.zip
-          kind:                  workflows
-          mapping-file:          ./mappings/folder-migration-mapping.json
+          kind:                  rules
+          mapping-file:          ./mappings/rule-migration-mapping.json
           strict:                false
           terminate-on-conflict: true
           verify-ssl:            ${{ vars.ICEDQ_VERIFY_SSL }}
