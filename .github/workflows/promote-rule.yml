@@ -64,7 +64,6 @@ jobs:
           bundle:                ./exports/bundle.zip
           kind:                  rules
           mapping-file:          ./mappings/rule-migration-mapping.json
-          use-fqn:               true
           strict:                false
           terminate-on-conflict: true
           verify-ssl:            ${{ vars.ICEDQ_VERIFY_SSL }}
