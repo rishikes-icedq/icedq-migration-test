@@ -1,0 +1,12 @@
+{
+  "useFqn": true,
+  "mapping": {
+    "connections": [
+      {
+        "existingId": "conn-fe26cf74-b09a-5ac7-b486-fc378e0a3ecf",
+        "newId": "conn-294241ac-43ec-535a-af2d-cf098e75a219",
+        "action": "override"
+      }
+    ]
+  }
+}
