@@ -65,7 +65,6 @@ jobs:
           bundle:                ./exports/bundle.zip
           kind:                  workflows
           mapping-file:          ./mappings/folder-migration-mapping.json
-          use-fqn:               true
           strict:                false
           terminate-on-conflict: true
           verify-ssl:            ${{ vars.ICEDQ_VERIFY_SSL }}
