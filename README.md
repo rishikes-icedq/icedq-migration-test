@@ -92,7 +92,7 @@ Steps 1 to 3 are same for SOURCE and TARGET environment.
    - **clientAuthentication** is **On**
    - **serviceAccount** checkbox is **ticked**
 
-    ![Keycloak Capability Config Settings](.github/images/keycload-capabilityconfig-settings.png)
+    ![Keycloak Capability Config Settings](.github/images/keycloak-capabilityconfig-settings.png)
 
 3. Click **Save**.
 
