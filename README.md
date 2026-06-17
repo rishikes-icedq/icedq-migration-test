@@ -1,12 +1,32 @@
 # iceDQ GitHub Actions Guide
 
-This guide will help you get started with iceDQ's GitHub Actions to automate your resource promotion tasks.
+This guide will help you get started with iceDQ's GitHub Actions to automate your resource migration tasks.
+
+## Table of Contents
+
+- [Available GitHub Actions](#available-github-actions)
+- [Prerequisites](#prerequisites)
+  - [1. Generate Client ID and Client Secret](#1-generate-client-id-and-client-secret)
+  - [2. Configure the Client ID](#2-configure-the-client-id)
+  - [3. Collect your iceDQ Identifiers](#3-collect-your-icedq-identifiers)
+- [How to Get Client ID and Secret](#how-to-get-client-id-and-secret)
+- [How to Configure Client](#how-to-configure-client)
+- [Quick Start](#quick-start)
+- [Create Mapping Files](#create-mapping-files)
+  - [Option 1 — Auto-generate with generate-mapping-action](#option-1-recommended--auto-generate-with-generate-mapping-action)
+  - [Option 2 — Manual mapping file](#option-2--manual-mapping-file)
+  - [Mapping file syntax](#mapping-file-syntax)
+  - [Action semantics](#action-semantics)
+- [More Information](#more-information)
+
+---
 
 ## Available GitHub Actions
 
 | Action | What it does |
 |---|---|
 | `icedq-tools/export-action` | Initiates an export, polls until complete, downloads the bundle ZIP, optionally uploads it as a workflow artifact. |
+| `icedq-tools/generate-mapping-action` | Analyses the export bundle, queries the target workspace to auto-match connections, parameters, and custom fields by name and type, and produces a ready-to-use mapping JSON for the import action. |
 | `icedq-tools/import-action` | Submits a bundle to a target workspace, polls until complete, parses the import log for skipped rules, optionally fails the workflow on any skip (strict: true). |
 
 ---
@@ -26,6 +46,7 @@ You are required to provide appropriate role to each Client to Export or Import 
 | Action | Role |
 |---|---|
 | Export | Reader |
+| Generate Mapping | Contributor |
 | Import | Contributor |
 
 Follow the steps in [How to configure Client ID](#how-to-configure-client) section below.
@@ -155,19 +176,50 @@ jobs:
           output-file:     ./exports/finance.zip
           artifact-name:   icedq-finance-folder-bundle
 
-  import:
+  generate-mapping:
     runs-on: ubuntu-latest
     needs: export
     environment: UAT
+    outputs:
+      mapping-file: ${{ steps.generate.outputs.mapping-file }}
     steps:
-      - name: Checkout repo (for mapping file)
-        uses: actions/checkout@v4
-
       - name: Download bundle from export job
         uses: actions/download-artifact@v4
         with:
           name: icedq-finance-folder-bundle
           path: ./exports
+
+      - name: Generate mapping for UAT environment
+        id: generate
+        uses: icedq-tools/generate-mapping-action@v1
+        with:
+          icedq-url:      ${{ vars.ICEDQ_URL }}
+          keycloak-url:   ${{ vars.ICEDQ_KEYCLOAK_URL }}
+          org-id:         ${{ vars.ICEDQ_ORG_ID }}
+          client-id:      ${{ secrets.ICEDQ_CLIENT_ID }}
+          client-secret:  ${{ secrets.ICEDQ_CLIENT_SECRET }}
+          account-id:     ${{ vars.ICEDQ_ACCOUNT_ID }}
+          workspace-id:   ${{ vars.ICEDQ_WORKSPACE_ID }}
+          bundle:         ./exports/finance.zip
+          output-file:    ./mapping/finance-folder-mapping.json
+          artifact-name:  icedq-finance-folder-mapping
+
+  import:
+    runs-on: ubuntu-latest
+    needs: [export, generate-mapping]
+    environment: UAT
+    steps:
+      - name: Download bundle from export job
+        uses: actions/download-artifact@v4
+        with:
+          name: icedq-finance-folder-bundle
+          path: ./exports
+
+      - name: Download generated mapping
+        uses: actions/download-artifact@v4
+        with:
+          name: icedq-finance-folder-mapping
+          path: ./mapping
 
       - name: Import folder into UAT environment
         uses: icedq-tools/import-action@v1
@@ -181,19 +233,29 @@ jobs:
           workspace-id:          ${{ vars.ICEDQ_WORKSPACE_ID }}
           bundle:                ./exports/finance.zip
           kind:                  workflows    # 'workflows' maps to the folder resource type on import
-          mapping-file:          ./mappings/folder-migration-mapping-uat.json
+          mapping-file:          ./mapping/finance-folder-mapping.json
           strict:                false
           terminate-on-conflict: true
 ```
 
 **Notes on this pipeline:**
-- You can further extend this pipeline with more steps to promote the same artifact bundle through all your environments — no re-export per environment, ensuring identical bytes are imported everywhere, meeting industry standard for deployments.
-- Each environment has its own `mapping-file` (refer [Create mapping files](#create-mapping-files)) because target connection/parameter UUIDs differ per workspace.
+- The `generate-mapping` job runs against the **UAT environment** because it needs to query TARGET workspace to auto-match connections by name and type.
+- You can further extend this pipeline to promote the same artifact bundle through all your environments — no re-export per environment, ensuring identical bytes are imported everywhere.
 - `strict: 'true'` fails the job if any rule is skipped (e.g., a missing target connection). The next environment is gated on `needs:` so failures stop the chain.
 
 ## Create mapping files
 
-In v0.1, the import-action requires a manually created mapping JSON file (`mapping-file` input). Auto-generation action by name (`icedq-tools/generate-mapping`) ships in v0.2. Check your action's `uses:` tag (e.g., `@v1`) to determine your version.
+The `import-action` requires a `mapping-file` that tells it how to re-link source connections, parameters, and custom fields to their counterparts in the target workspace. There are two ways to produce this file.
+
+### Option 1 (recommended) — Auto-generate with `generate-mapping-action`
+
+Use `icedq-tools/generate-mapping-action` as a middle job between export and import. It queries the target workspace, matches resources by name and connector type, and writes a ready-to-use mapping JSON automatically. See the [Quick start](#quick-start) example for a complete pipeline.
+
+> If a connection cannot be matched automatically (e.g. different name in target), you can still fall back to a manual mapping for that specific entry.
+
+### Option 2 — Manual mapping file
+
+Manually author a JSON file and commit it to the repo (e.g. `mappings/uat.json`). Pass its path via the `mapping-file` input of the import action. Useful when auto-matching can't resolve all entries or you need explicit control over every override. In this case, you do not need to add `generate-mapping-action` as a middle job between export and import.
 
 ### Mapping file syntax
 
@@ -241,10 +303,11 @@ Store mapping files in your repo (e.g., `mappings/qa.json`, `mappings/uat.json`,
 ---
 
 
-## Action inputs
+## More Information
 
-You can visit respective github repositories of these actions for input parameters details.
-| Action | Usage Link |
+You can checkout documentations of these actions for detailed information.
+| Action | Documentation |
 |---|---|
-| export-action | https://github.com/icedq-tools/export-action#icedq-toolsexport-action |
-| import-action | https://github.com/icedq-tools/import-action#icedqimport-action |
+| export-action | [View Documentation](https://github.com/icedq-tools/export-action#icedq-toolsexport-action) |
+| generate-mapping-action | [View Documentation](https://github.com/icedq-tools/generate-mapping-action#icedq-toolsgenerate-mapping-action) |
+| import-action | [View Documentation](https://github.com/icedq-tools/import-action#icedqimport-action) |
