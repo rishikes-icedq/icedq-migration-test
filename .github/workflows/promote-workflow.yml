@@ -18,7 +18,7 @@ jobs:
       bundle-path: ${{ steps.export.outputs.bundle-path }}
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Export workflow from Soruce environment
         id: export
