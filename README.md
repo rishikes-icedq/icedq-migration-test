@@ -6,18 +6,17 @@ This guide will help you get started with iceDQ's GitHub Actions to automate you
 
 - [Available GitHub Actions](#available-github-actions)
 - [Prerequisites](#prerequisites)
-  - [1. Generate Client ID and Client Secret](#1-generate-client-id-and-client-secret)
-  - [2. Configure the Client ID](#2-configure-the-client-id)
+  - [1. Create a Service Account](#1-create-a-service-account)
+  - [2. Assign Role to the Service Account](#2-assign-roles-to-the-service-account)
   - [3. Collect your iceDQ Identifiers](#3-collect-your-icedq-identifiers)
-- [How to Get Client ID and Secret](#how-to-get-client-id-and-secret)
-- [How to Configure Client](#how-to-configure-client)
+- [How to Create a Service Account](#how-to-create-a-service-account)
+- [How to Assign Role to the Service Account](#how-to-assign-roles-to-the-service-account)
 - [Quick Start](#quick-start)
-- [Create Mapping Files](#create-mapping-files)
-  - [Option 1 — Auto-generate with generate-mapping-action](#option-1-recommended--auto-generate-with-generate-mapping-action)
-  - [Option 2 — Manual mapping file](#option-2--manual-mapping-file)
-  - [Mapping file syntax](#mapping-file-syntax)
-  - [Action semantics](#action-semantics)
-- [More Information](#more-information)
+  - [Promote a Folder](#promote-a-folder-on-every-push)
+  - [Create Mapping Files](#create-mapping-files)
+- [FAQs](#faqs)
+  - [How to Rotate Service Account Credentials](#1-how-to-rotate-service-account-credentials)
+- [References](#references)
 
 ---
 
@@ -33,23 +32,23 @@ This guide will help you get started with iceDQ's GitHub Actions to automate you
 
 ## Prerequisites
 
-### 1. Generate Client ID and Client Secret
+### 1. Create a Service Account
 
-For promoting your resources from lower environment to higher, you will need to create client credentials in both environments. Follow the steps in [How to Get Client ID and Secret](#how-to-get-client-id-and-secret) section below.
+For promoting your resources from lower environment to higher, you will need to create **service account** in both environments. Follow the steps in [How to Create a Service Account](#how-to-create-a-service-account) section below.
 
-> **Recommendation:** Create one client per environment (Dev, QA, UAT, Prod).
+> **Recommendation:** Create one service account per environment (Dev, QA, UAT, Prod).
 
-### 2. Configure the client ID
+### 2. Assign Roles to the Service Account
 
-You are required to provide appropriate role to each Client to Export or Import resources.
+You are required to provide appropriate role to each service account to Export or Import resources.
 
-| Action | Role |
+| Action | Minimum required Role |
 |---|---|
 | Export | Reader |
 | Generate Mapping | Contributor |
 | Import | Contributor |
 
-Follow the steps in [How to configure Client ID](#how-to-configure-client) section below.
+Follow the steps in [How to Assign Roles to the Service Account](#how-to-assign-roles-to-the-service-account) section below.
 
 ### 3. Collect your iceDQ identifiers
 
@@ -57,84 +56,69 @@ You'll need these for each environment of your iceDQ application:
 
 - **Org ID**
 - **Account ID**
-- **Workspace IDs**
+- **Workspace ID**
 - **iceDQ instance URL**
-- **Keycloak URL** — base URL up to the realm path, e.g. `https://auth.example.com/realms/icedq`
+- **Keycloak URL** — base URL up to the realm name, e.g. `https://auth.example.com/realms/icedq`
 
-## How to Get Client ID and Secret
+## How to Create a Service Account
 
-### Step 1: Go to the iceDQ Homepage
+### Step 1: Go to the iceDQ Administration
 
-Log in and navigate to **Administration**.
+Log in and navigate to **Administration** section.
 
 ![iceDQ Homepage](.github/images/icedq-home.png)
 
-### Step 2: Open the Security Section
+### Step 2: Open the Service Accounts tab
 
-Inside Administration, click on **Security**.
-![Security Tab](.github/images/icedq-security-tab.png)
+1. Inside Administration, go to **Service Accounts** tab.
+2. Click on **+New Service Account**
+![Security Tab](.github/images/service-account-tab.png)
 
-### Step 3: Go to Client Credentials
+### Step 3: Create New Service Account
 
-In the Security tab, click on **Client Credentials**.
+1. Provide a name for your account after **sa-**
+2. Select credential's **Rotation Policy**
+3. Click **Save**
 
-### Step 4: Create a New Client
+You will now see a pop-up dialog. Here, you can either copy your Client ID and Secret or Download it.
 
-Click the **+ New Client** button on the top right.
-![Client Credentials Page](.github/images/client-credentials.png)
+![Create New Client](.github/images/copy-client-credentials.png)
 
-### Step 5: Fill in the Details and Generate Credentials
-
-Enter a **Name** and **Description** for your client, keep the **Authentication** as **Private**, then click **Save**.
-![Create New Client](.github/images/create-new-client.png)
-
-> ❗**Important:** Copy and save the **Client Secret** securely as it will be shown only once.
+> ❗**Important:** **Client Secret** will be shown only once. So, either copy and save it securely or download it.
 
 
+## How to Assign Roles to the Service Account
 
-## How to configure Client
+### Step 1: Decide Where to Assign
 
-Steps 1 to 3 are same for SOURCE and TARGET environment.
-### Step 1: Open Keycloak admin console
+First, decide if you want to assign the service account to a workspace or an account.
 
-1. Login to Keycloak.
-2. Click on **manageRealms** in top-left corner and select your realm.
+Steps 2 to 3 are the same whether you assign to a Workspace or an Account. Below steps show assigning to a Workspace.
 
-### Step 2: Open your client
+### Step 2: Open your Workspace
 
-1. Navigate to **clients** section.
-2. Search for your client ID and open it.
-    ![Search Client ID in Keycloak](.github/images/search-client-id-in-keycloak.png)
+1. Navigate to the **Workspaces** tab.
+2. Open your workspace and go to **Service Accounts** section.
+3. Click on **+Assign**.
 
-### Step 3: Update Capability Configurations
+    ![Service Accounts assignment section](.github/images/map-service-account-section.png)
 
-1. Go to the **Settings** tab and scroll down to **capabilityConfig** section.
-2. Make sure below 2 configs are set as mentioned:
-   - **clientAuthentication** is **On**
-   - **serviceAccount** checkbox is **ticked**
+### Step 3: Assign Role
 
-    ![Keycloak Capability Config Settings](.github/images/keycloak-capabilityconfig-settings.png)
-
-3. Click **Save**.
-
-### Step 4: Update Service Account Configurations
-
-1. Go to the **serviceAccounts** tab.
-2. Click on **assignRole** dropdown-button and select **realmRoles**.
-3. Search for your workspace ID.
-4. Assign the following realm role:
+1. Select appropriate **Role**:
    - **SOURCE workspace** — from where you want to export the resource → assign `Reader` role
-   
-    ![Keycloak Service Account Reader Role](.github/images/keycloak-service-account-reader-role.png)
 
    - **TARGET workspace** — where you want to import the resource → assign `Contributor` role
 
-    ![Keycloak Service Account Contributor Role](.github/images/keycloak-service-account-contributor-role.png)
+2. Select the created Service Account.
+3. Click **+Assign**
+
+    ![Assign role to service account](.github/images/assign-role-to-service-account.png)
 
 ---
 
 
-## Quick start
+## Quick Start
 
 ### Promote a Folder on every push
 
@@ -243,17 +227,17 @@ jobs:
 - You can further extend this pipeline to promote the same artifact bundle through all your environments — no re-export per environment, ensuring identical bytes are imported everywhere.
 - `strict: 'true'` fails the job if any rule is skipped (e.g., a missing target connection). The next environment is gated on `needs:` so failures stop the chain.
 
-## Create mapping files
+### Create Mapping Files
 
 The `import-action` requires a `mapping-file` that tells it how to re-link source connections, parameters, and custom fields to their counterparts in the target workspace. There are two ways to produce this file.
 
-### Option 1 (recommended) — Auto-generate with `generate-mapping-action`
+#### Option 1 (recommended) — Auto-generate with `generate-mapping-action`
 
 Use `icedq-tools/generate-mapping-action` as a middle job between export and import. It queries the target workspace, matches resources by name and connector type, and writes a ready-to-use mapping JSON automatically. See the [Quick start](#quick-start) example for a complete pipeline.
 
 > If a connection cannot be matched automatically (e.g. different name in target), you can still fall back to a manual mapping for that specific entry.
 
-### Option 2 — Manual mapping file
+#### Option 2 — Manual mapping file
 
 Manually author a JSON file and commit it to the repo (e.g. `mappings/uat.json`). Pass its path via the `mapping-file` input of the import action. Useful when auto-matching can't resolve all entries or you need explicit control over every override. In this case, you do not need to add `generate-mapping-action` as a middle job between export and import.
 
@@ -278,8 +262,8 @@ Manually author a JSON file and commit it to the repo (e.g. `mappings/uat.json`)
     ],
     "customFields": [
       {
-        "existingId": "field-source-uuid",
-        "newId":      "field-target-uuid",
+        "existingId": "source-field-name",
+        "newId":      "target-field-name",
         "action":     "override"
       }
     ]
@@ -287,7 +271,7 @@ Manually author a JSON file and commit it to the repo (e.g. `mappings/uat.json`)
 }
 ```
 
-### Action semantics
+### Mapping Field Reference
 
 | Object | Supported actions | What each does |
 |---|---|---|
@@ -303,9 +287,20 @@ Store mapping files in your repo (e.g., `mappings/qa.json`, `mappings/uat.json`,
 ---
 
 
-## More Information
+## FAQs
 
-You can checkout documentations of these actions for detailed information.
+### 1. How to Rotate Service Account Credentials
+1. Go to **Service Accounts** section.
+2. Find your service account and click on three-dots on the right hand side.
+3. Click **Rotate Credentials**
+
+    ![Rotate service account credentials](.github/images/rotate-sa-credentials.png)
+4. You will see a pop-up dialog. Either copy the new **Client Credentials** or download as a file.
+
+> ⚠️ Make sure to rotate your credentials before expiry to avoid service interruption.
+
+## References
+
 | Action | Documentation |
 |---|---|
 | export-action | [View Documentation](https://github.com/icedq-tools/export-action#icedq-toolsexport-action) |
