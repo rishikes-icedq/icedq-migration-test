@@ -20,6 +20,10 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
+      - name: Add npm global bin to PATH
+        shell: powershell
+        run: echo "$(npm config get prefix)" >> $env:GITHUB_PATH
+
       - name: Export rule from Source environment
         id: export
         uses: icedq-tools/export-action@main
@@ -37,6 +41,12 @@ jobs:
           artifact-name:   icedq-rule-bundle
           verify-ssl:      ${{ vars.ICEDQ_VERIFY_SSL }}
 
+      - name: Upload bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: icedq-rule-bundle
+          path: ./exports/bundle.zip
+
   generate-mapping:
     runs-on: ubuntu-latest
     needs: export
@@ -50,24 +60,34 @@ jobs:
           name: icedq-rule-bundle
           path: ./exports
 
+      - name: Add npm global bin to PATH
+        shell: bash
+        run: echo "$(npm config get prefix)" >> "$GITHUB_PATH"
+
       - name: Generate mapping for Target environment
         id: generate
         uses: icedq-tools/generate-mapping-action@main
         with:
-          icedq-url:      ${{ vars.ICEDQ_URL }}
-          keycloak-url:   ${{ vars.ICEDQ_KEYCLOAK_URL }}
-          org-id:         ${{ vars.ICEDQ_ORG_ID }}
-          client-id:      ${{ secrets.ICEDQ_CLIENT_ID }}
-          client-secret:  ${{ secrets.ICEDQ_CLIENT_SECRET }}
-          account-id:     ${{ vars.ICEDQ_ACCOUNT_ID }}
-          workspace-id:   ${{ vars.ICEDQ_WORKSPACE_ID }}
-          bundle:         ./exports/bundle.zip
-          output-file:    ./mapping/rule-migration-mapping.json
-          artifact-name:  icedq-rule-mapping
-          verify-ssl:     ${{ vars.ICEDQ_VERIFY_SSL }}
+          icedq-url:       ${{ vars.ICEDQ_URL }}
+          keycloak-url:    ${{ vars.ICEDQ_KEYCLOAK_URL }}
+          org-id:          ${{ vars.ICEDQ_ORG_ID }}
+          client-id:       ${{ secrets.ICEDQ_CLIENT_ID }}
+          client-secret:   ${{ secrets.ICEDQ_CLIENT_SECRET }}
+          account-id:      ${{ vars.ICEDQ_ACCOUNT_ID }}
+          workspace-id:    ${{ vars.ICEDQ_WORKSPACE_ID }}
+          bundle:          ./exports/bundle.zip
+          output-file:     ./mapping/rule-migration-mapping.json
+          upload-artifact: 'false'
+          verify-ssl:      ${{ vars.ICEDQ_VERIFY_SSL }}
+
+      - name: Upload mapping
+        uses: actions/upload-artifact@v4
+        with:
+          name: icedq-rule-mapping
+          path: ./mapping/rule-migration-mapping.json
 
   import:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: [export, generate-mapping]
     environment: TARGET
     steps:
@@ -82,6 +102,10 @@ jobs:
         with:
           name: icedq-rule-mapping
           path: ./mapping
+
+      - name: Add npm global bin to PATH
+        shell: powershell
+        run: echo "$(npm config get prefix)" >> $env:GITHUB_PATH
 
       - name: Import rule into Target environment
         uses: icedq-tools/import-action@main

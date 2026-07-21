@@ -20,6 +20,10 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
+      - name: Add npm global bin to PATH
+        shell: powershell
+        run: echo "$(npm config get prefix)" >> $env:GITHUB_PATH
+
       - name: Export folder from Soruce environment
         id: export
         uses: icedq-tools/export-action@main
@@ -38,6 +42,12 @@ jobs:
           artifact-name:   icedq-folder-bundle
           verify-ssl:      ${{ vars.ICEDQ_VERIFY_SSL }}
 
+      - name: Upload bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: icedq-folder-bundle
+          path: ./exports/bundle.zip
+
   generate-mapping:
     runs-on: ubuntu-latest
     needs: export
@@ -51,6 +61,10 @@ jobs:
           name: icedq-folder-bundle
           path: ./exports
 
+      - name: Add npm global bin to PATH
+        shell: bash
+        run: echo "$(npm config get prefix)" >> "$GITHUB_PATH"
+
       - name: Generate mapping for Target environment
         id: generate
         uses: icedq-tools/generate-mapping-action@main
@@ -63,12 +77,18 @@ jobs:
           account-id:     ${{ vars.ICEDQ_ACCOUNT_ID }}
           workspace-id:   ${{ vars.ICEDQ_WORKSPACE_ID }}
           bundle:         ./exports/bundle.zip
-          output-file:    ./mapping/folder-migration-mapping.json
-          artifact-name:  icedq-folder-mapping
-          verify-ssl:     ${{ vars.ICEDQ_VERIFY_SSL }}
+          output-file:     ./mapping/folder-migration-mapping.json
+          upload-artifact: 'false'
+          verify-ssl:      ${{ vars.ICEDQ_VERIFY_SSL }}
+
+      - name: Upload mapping
+        uses: actions/upload-artifact@v4
+        with:
+          name: icedq-folder-mapping
+          path: ./mapping/folder-migration-mapping.json
 
   import:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: [export, generate-mapping]
     environment: TARGET
     steps:
@@ -83,6 +103,10 @@ jobs:
         with:
           name: icedq-folder-mapping
           path: ./mapping
+
+      - name: Add npm global bin to PATH
+        shell: powershell
+        run: echo "$(npm config get prefix)" >> $env:GITHUB_PATH
 
       - name: Import folder into Target environment
         uses: icedq-tools/import-action@main
