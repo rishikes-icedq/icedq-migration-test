@@ -72,7 +72,8 @@ Log in and navigate to **Administration** section.
 
 1. Inside Administration, go to **Service Accounts** tab.
 2. Click on **+New Service Account**
-![Security Tab](.github/images/service-account-tab.png)
+
+    ![Service Accounts Tab](.github/images/service-account-tab.png)
 
 ### Step 3: Create New Service Account
 
@@ -82,7 +83,7 @@ Log in and navigate to **Administration** section.
 
 You will now see a pop-up dialog. Here, you can either copy your Client ID and Secret or Download it.
 
-![Create New Client](.github/images/copy-client-credentials.png)
+![Copy Client Credentials](.github/images/copy-client-credentials.png)
 
 > ❗**Important:** **Client Secret** will be shown only once. So, either copy and save it securely or download it.
 
