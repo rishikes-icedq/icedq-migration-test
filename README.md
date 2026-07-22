@@ -36,7 +36,9 @@ This guide will help you get started with iceDQ's GitHub Actions to automate you
 
 For promoting your resources from lower environment to higher, you will need to create **service account** in both environments. Follow the steps in [How to Create a Service Account](#how-to-create-a-service-account) section below.
 
-> **Recommendation:** Create one service account per environment (Dev, QA, UAT, Prod).
+> **Note:** Service accounts are available from **iceDQ version 7.8.0** and above.
+
+**Recommendation:** Create one service account per environment (Dev, QA, UAT, Prod).
 
 ### 2. Assign Roles to the Service Account
 
