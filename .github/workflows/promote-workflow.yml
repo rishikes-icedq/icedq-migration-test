@@ -38,12 +38,6 @@ jobs:
           artifact-name:   icedq-workflow-bundle
           verify-ssl:      ${{ vars.ICEDQ_VERIFY_SSL }}
 
-      - name: Upload bundle
-        uses: actions/upload-artifact@v4
-        with:
-          name: icedq-workflow-bundle
-          path: ./exports/bundle.zip
-
   generate-mapping:
     runs-on: ubuntu-latest
     needs: export
