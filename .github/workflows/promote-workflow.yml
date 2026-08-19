@@ -17,9 +17,6 @@ jobs:
       status:      ${{ steps.export.outputs.status }}
       bundle-path: ${{ steps.export.outputs.bundle-path }}
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-
       - name: Export workflow from Soruce environment
         id: export
         uses: icedq-tools/export-action@main
