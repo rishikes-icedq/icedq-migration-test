@@ -1,23 +1,28 @@
-name: Promote Workflow from Soruce to Target
+name: Promote Workflow from Source to Target
 
 on:
   workflow_dispatch:
     inputs:
       workflow-id:
-        description: "UUID of the workflow to export from Soruce"
+        description: "UUID of the workflow to export from Source"
         required: true
         default: "REPLACE_WITH_YOUR_WORKFLOW_UUID"
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
 
 jobs:
   export:
     runs-on: ubuntu-latest
     environment: SOURCE
+    timeout-minutes: 45
     outputs:
       task-id:     ${{ steps.export.outputs.task-id }}
       status:      ${{ steps.export.outputs.status }}
       bundle-path: ${{ steps.export.outputs.bundle-path }}
     steps:
-      - name: Export workflow from Soruce environment
+      - name: Export workflow from Source environment
         id: export
         uses: icedq-tools/export-action@main
         with:
@@ -39,6 +44,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: export
     environment: TARGET
+    timeout-minutes: 30
     outputs:
       mapping-file: ${{ steps.generate.outputs.mapping-file }}
     steps:
@@ -61,19 +67,14 @@ jobs:
           workspace-id:   ${{ vars.ICEDQ_WORKSPACE_ID }}
           bundle:         ./exports/bundle.zip
           output-file:    ./mapping/workflow-migration-mapping.json
-          upload-artifact: 'false'
+          artifact-name:   icedq-workflow-mapping
           verify-ssl:     ${{ vars.ICEDQ_VERIFY_SSL }}
-
-      - name: Upload mapping
-        uses: actions/upload-artifact@v4
-        with:
-          name: icedq-workflow-mapping
-          path: ./mapping/workflow-migration-mapping.json
 
   import:
     runs-on: ubuntu-latest
     needs: [export, generate-mapping]
     environment: TARGET
+    timeout-minutes: 30
     steps:
       - name: Download bundle from export job
         uses: actions/download-artifact@v4
