@@ -24,7 +24,7 @@ jobs:
     steps:
       - name: Export rule from Source environment
         id: export
-        uses: icedq-tools/export-action@main
+        uses: icedq-tools/export-action@v1
         with:
           icedq-url:       ${{ vars.ICEDQ_URL }}
           keycloak-url:    ${{ vars.ICEDQ_KEYCLOAK_URL }}
