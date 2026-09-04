@@ -1,0 +1,100 @@
+name: Promote Rule from Source to Target
+
+on:
+  workflow_dispatch:
+    inputs:
+      rule-id:
+        description: "UUID of the rule to export from Source"
+        required: true
+        default: "REPLACE_WITH_YOUR_RULE_UUID"
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  export-rule:
+    runs-on: ubuntu-latest
+    environment: SOURCE
+    timeout-minutes: 45
+    steps:
+      - name: Export rule from Source environment
+        uses: icedq-tools/export-action@feature/output-flag-rename   # was @v1
+        with:
+          cli-version:     "github:icedq-tools/cli#feature/cli-hardening-and-output-flag-rename"   # was omitted (defaults to 'latest')
+          icedq-url:       ${{ vars.ICEDQ_URL }}
+          keycloak-url:    ${{ vars.ICEDQ_KEYCLOAK_URL }}
+          org-id:          ${{ vars.ICEDQ_ORG_ID }}
+          client-id:       ${{ secrets.ICEDQ_CLIENT_ID }}
+          client-secret:   ${{ secrets.ICEDQ_CLIENT_SECRET }}
+          account-id:      ${{ vars.ICEDQ_ACCOUNT_ID }}
+          workspace-id:    ${{ vars.ICEDQ_WORKSPACE_ID }}
+          resource:        rule
+          id:              ${{ inputs.rule-id }}
+          output-file:     ./exports/bundle.zip
+          artifact-name:   icedq-rule-bundle
+          verify-ssl:      ${{ vars.ICEDQ_VERIFY_SSL }}
+
+  generate-rule-mapping:
+    runs-on: ubuntu-latest
+    needs: export-rule
+    environment: TARGET
+    timeout-minutes: 30
+    steps:
+      - name: Download bundle from export job
+        uses: actions/download-artifact@v4
+        with:
+          name: icedq-rule-bundle
+          path: ./exports
+
+      - name: Generate mapping for Target environment
+        uses: icedq-tools/generate-mapping-action@feature/output-flag-rename   # was @v1
+        with:
+          cli-version:     "github:icedq-tools/cli#feature/cli-hardening-and-output-flag-rename"   # was omitted (defaults to 'latest')
+          icedq-url:       ${{ vars.ICEDQ_URL }}
+          keycloak-url:    ${{ vars.ICEDQ_KEYCLOAK_URL }}
+          org-id:          ${{ vars.ICEDQ_ORG_ID }}
+          client-id:       ${{ secrets.ICEDQ_CLIENT_ID }}
+          client-secret:   ${{ secrets.ICEDQ_CLIENT_SECRET }}
+          account-id:      ${{ vars.ICEDQ_ACCOUNT_ID }}
+          workspace-id:    ${{ vars.ICEDQ_WORKSPACE_ID }}
+          bundle:          ./exports/bundle.zip
+          output-file:     ./mapping/rule-migration-mapping.json
+          artifact-name:   icedq-rule-mapping
+          verify-ssl:      ${{ vars.ICEDQ_VERIFY_SSL }}
+
+  import-rule:
+    runs-on: ubuntu-latest
+    needs: [export-rule, generate-rule-mapping]
+    environment: TARGET
+    timeout-minutes: 30
+    steps:
+      - name: Download bundle from export job
+        uses: actions/download-artifact@v4
+        with:
+          name: icedq-rule-bundle
+          path: ./exports
+
+      - name: Download generated mapping
+        uses: actions/download-artifact@v4
+        with:
+          name: icedq-rule-mapping
+          path: ./mapping
+
+      - name: Import rule into Target environment
+        uses: icedq-tools/import-action@feature/output-flag-rename   # was @v1
+        with:
+          cli-version:     "github:icedq-tools/cli#feature/cli-hardening-and-output-flag-rename"   # was omitted (defaults to 'latest')
+          icedq-url:             ${{ vars.ICEDQ_URL }}
+          keycloak-url:          ${{ vars.ICEDQ_KEYCLOAK_URL }}
+          org-id:                ${{ vars.ICEDQ_ORG_ID }}
+          client-id:             ${{ secrets.ICEDQ_CLIENT_ID }}
+          client-secret:         ${{ secrets.ICEDQ_CLIENT_SECRET }}
+          account-id:            ${{ vars.ICEDQ_ACCOUNT_ID }}
+          workspace-id:          ${{ vars.ICEDQ_WORKSPACE_ID }}
+          bundle:                ./exports/bundle.zip
+          kind:                  rules
+          mapping-file:          ./mapping/rule-migration-mapping.json
+          strict:                false
+          terminate-on-conflict: true
+          verify-ssl:            ${{ vars.ICEDQ_VERIFY_SSL }}
