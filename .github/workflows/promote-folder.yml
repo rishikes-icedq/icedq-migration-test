@@ -17,14 +17,9 @@ jobs:
     runs-on: ubuntu-latest
     environment: SOURCE
     timeout-minutes: 45
-    outputs:
-      task-id:     ${{ steps.export.outputs.task-id }}
-      status:      ${{ steps.export.outputs.status }}
-      bundle-path: ${{ steps.export.outputs.bundle-path }}
     steps:
       - name: Export folder from Source environment
-        id: export
-        uses: icedq-tools/export-action@main
+        uses: icedq-tools/export-action@v1
         with:
           icedq-url:       ${{ vars.ICEDQ_URL }}
           keycloak-url:    ${{ vars.ICEDQ_KEYCLOAK_URL }}
@@ -45,8 +40,6 @@ jobs:
     needs: export
     environment: TARGET
     timeout-minutes: 30
-    outputs:
-      mapping-file: ${{ steps.generate.outputs.mapping-file }}
     steps:
       - name: Download bundle from export job
         uses: actions/download-artifact@v4
@@ -55,8 +48,7 @@ jobs:
           path: ./exports
 
       - name: Generate mapping for Target environment
-        id: generate
-        uses: icedq-tools/generate-mapping-action@main
+        uses: icedq-tools/generate-mapping-action@v1
         with:
           icedq-url:      ${{ vars.ICEDQ_URL }}
           keycloak-url:   ${{ vars.ICEDQ_KEYCLOAK_URL }}
@@ -89,7 +81,7 @@ jobs:
           path: ./mapping
 
       - name: Import folder into Target environment
-        uses: icedq-tools/import-action@main
+        uses: icedq-tools/import-action@v1
         with:
           icedq-url:             ${{ vars.ICEDQ_URL }}
           keycloak-url:          ${{ vars.ICEDQ_KEYCLOAK_URL }}

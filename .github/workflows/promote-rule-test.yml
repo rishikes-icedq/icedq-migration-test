@@ -1,4 +1,4 @@
-name: Promote Rule from Source to Target
+name: Test - Promote Rule from Source to Target
 
 on:
   workflow_dispatch:

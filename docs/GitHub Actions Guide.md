@@ -10,13 +10,15 @@ This guide will help you get started with iceDQ's GitHub Actions to automate you
 | [`icedq-tools/generate-mapping-action`](https://github.com/marketplace/actions/icedq-generate-mapping) | Analyses the export bundle, queries the target workspace to auto-match connections, parameters, and custom fields by name and type, and produces a ready-to-use mapping JSON for the import action. |
 | [`icedq-tools/import-action`](https://github.com/marketplace/actions/icedq-import) | Submits a bundle to a target workspace, polls until complete, parses the import log for skipped rules, optionally fails the workflow on any skip (strict: true). |
 
+All three Actions handle OAuth token acquisition/refresh, async job polling with backoff, and step-summary output for you — you only need to supply the inputs shown below.
+
 ---
 
 ## Prerequisites
 
 ### 1. Create a Service Account
 
-For promoting your resources from lower environment to higher, you will need to create **service account** in both environments. Follow the steps in [How to Create a Service Account](Service Account.md#how-to-create-a-service-account).
+For promoting your resources from lower environment to higher, you will need to create a **service account** in both environments. Follow the steps in [How to Create a Service Account](Service%20Account.md#how-to-create-a-service-account).
 
 > **Note:** Service accounts are available from **iceDQ version 7.8.0** and above.
 
@@ -30,17 +32,74 @@ You are required to provide appropriate role to each service account to Export o
 | Generate Mapping | Contributor |
 | Import | Contributor |
 
-Follow the steps in [How to Assign Role to the Service Account](Service Account.md#how-to-assign-role-to-the-service-account).
+Follow the steps in [How to Assign Role to the Service Account](Service%20Account.md#how-to-assign-role-to-the-service-account).
 
 ### 3. Collect your iceDQ identifiers
 
-You'll need these for each environment of your iceDQ application:
+You'll need to configure the following as GitHub Environment variables for each environment. If you don't have access to find these values, ask your iceDQ administrator.
 
-- **Org ID**
-- **Account ID**
-- **Workspace ID**
-- **iceDQ instance URL**
-- **Keycloak URL** — base URL up to the realm name, e.g. `https://auth.example.com/realms/icedq`
+| Variable | What it is | Where to get it | Required for |
+|---|---|---|---|
+| `ICEDQ_URL` | Base URL of your iceDQ instance | Your browser's address bar when logged in to iceDQ | All actions |
+| `ICEDQ_KEYCLOAK_URL` | Keycloak authentication realm URL | Your iceDQ administrator — format: `https://<host>/auth/realms/<realm>` | All actions |
+| `ICEDQ_ORG_ID` | Your iceDQ organization ID | Open any rule → view rule metadata → copy `orgId` | All actions |
+| `ICEDQ_ACCOUNT_ID` | Your iceDQ account ID | Open any rule → view rule metadata → copy `accountId` | All actions |
+| `ICEDQ_WORKSPACE_ID` | Your iceDQ workspace ID | Open any rule → view rule metadata → copy `workspaceId` | All actions |
+| `ICEDQ_CLIENT_ID` | Service account client identifier | iceDQ UI → Administration → Identity and Access → Service Accounts | All actions |
+| `ICEDQ_CLIENT_SECRET` | Service account client secret | Shown once when the service account is created or credentials rotated — download or copy immediately | All actions |
+
+#### a. iceDQ Base URL
+
+Open iceDQ in your browser. The base URL is everything before the first path segment.
+
+There is no single correct value — every organization has its own iceDQ instance, so use your instance's address:
+
+- iceDQ Cloud customers: typically https://app.icedq.net (shown as the example throughout these guides).
+
+- On-premise / private-cloud installs: whatever URL your team uses (e.g., https://icedq.mycompany.com).
+Whenever you see https://app.icedq.net in a config example, treat it as a placeholder and replace it with your own instance URL. Don't add a trailing slash.
+
+#### b. iceDQ Keycloak URL
+
+The Keycloak URL includes the realm name and follows this format:
+
+```
+https://<host>/auth/realms/<realm>
+```
+
+The realm is usually either `icedq` or `iam.icedq`. Which one applies depends on how your iceDQ instance was set up, **so confirm the exact value with your iceDQ administrator**. 
+
+Example: `https://app.icedq.net/auth/realms/iam.icedq`
+
+#### c. iceDQ Org ID, Account ID and Workspace ID
+
+All three IDs are attached to every rule in your iceDQ instance. The quickest way to find them:
+
+1. Open the **Data Testing** module.
+2. Open any existing rule.
+3. View the rule's metadata (the JSON definition).
+4. Copy the values of `orgId`, `accountId`, and `workspaceId`.
+
+Example metadata:
+
+```json
+{
+    "orgId": "org-icedq",
+    "accountId": "acct-c97e76f5-d51a-560e-a322-c46f76a2455d",
+    "workspaceId": "wksc-fdd3fa7d-07ab-5b7a-b039-4f8330bab135",
+    "rule": {
+        "id": "rule-c2c3652a-38e6-5f26-abec-8571f09c6ad3",
+        "folderId": "fldr-ec5b7669-9070-5e61-8dd0-50ab97486bdc",
+        "sourceConnectionId": "conn-b21e00c4-621a-5b60-9cea-aa45c218e248"
+    }
+}
+```
+
+> If your workspace has no rules yet, ask your iceDQ administrator — every organization in iceDQ has exactly one Org ID, and the admin can read all three values directly from the platform.
+
+#### d. iceDQ Client ID and Secret
+
+These are the credentials of the service account you created in [Prerequisite 1](#1-create-a-service-account). The Client Secret is shown only once at creation time — if you no longer have it, rotate the credentials following the steps in [How To: Rotate Service Account Credentials](Service%20Account.md#how-to-rotate-service-account-credentials).
 
 ---
 
@@ -148,6 +207,7 @@ jobs:
 - The `generate-workflow-mapping` job runs against the **UAT environment** because it needs to query TARGET workspace (UAT in this example) to auto-match connections by name and type.
 - You can further extend this pipeline to promote the same artifact bundle through all your environments — no re-export per environment, ensuring identical bytes are imported everywhere.
 - `strict: 'true'` fails the job if any rule is skipped (e.g., a missing target connection). The next environment is gated on `needs:` so failures stop the chain.
+- To go beyond DEV → UAT, add further `generate-*-mapping` + `import-*` job pairs chained with `needs:`, each targeting the next environment (e.g. QA, then Prod). Configure [required reviewers](https://docs.github.com/en/actions/deployment/targeting-different-environments/using-environments-for-deployment) on the later GitHub Environments to gate promotion behind manual approval.
 
 ### Create Mapping Files
 
@@ -157,7 +217,7 @@ The `import-action` requires a `mapping-file` that tells it how to re-link sourc
 
 Use `icedq-tools/generate-mapping-action` as a middle job between export and import. It queries the target workspace, matches resources by name and connector type, and writes a ready-to-use mapping JSON automatically. See the [Quick start](#quick-start) example for a complete pipeline.
 
-> If a connection cannot be matched automatically (e.g. different name in target), you can still fall back to a manual mapping for that specific entry.
+> If a connection cannot be matched automatically (e.g. the name differs between environments), the action throws an error — there is no partial output. In that case, use Option 2 (manual mapping) instead.
 
 #### Option 2 — Manual mapping file
 
@@ -167,7 +227,7 @@ Manually author a JSON file and commit it to the repo (e.g. `mappings/uat.json`)
 
 ```json
 {
-  "useFqn": false,
+  "useFqn": true,
   "mapping": {
     "connections": [
       {
@@ -179,12 +239,13 @@ Manually author a JSON file and commit it to the repo (e.g. `mappings/uat.json`)
     "parameters": [
       {
         "existingId": "param-source-uuid",
-        "action":     "append"
+        "newId":      "param-target-uuid",
+        "action":     "upsert"
       }
     ],
     "customFields": [
       {
-        "existingId": "source-field-name",
+        "existingId": "source-field-name", // field name, NOT uuid
         "newId":      "target-field-name",
         "action":     "override"
       }
@@ -195,16 +256,131 @@ Manually author a JSON file and commit it to the repo (e.g. `mappings/uat.json`)
 
 ### Mapping Field Reference
 
-| Object | Supported actions | What each does |
+| Object | Supported actions | What it does |
 |---|---|---|
-| Connections | `override` only | Re-link rules in the target to use `newId` instead of the source's `existingId`. Target connection must already exist. |
-| Custom fields | `override` only | Same as connections. Target field must already exist. |
-| Parameters | `append`, `override`, `upsert` | `append`: add new parameter keys to target without overwriting existing values. `override`: target parameter must already exist. `upsert`: overwrites all matching keys and appends others. **In production**, always specify `append`, `override` or `upsert` explicitly. |
-| useFqn | `true`, `false` | `false`: asset with same name doesn't already exist in the target environment. `true`: an asset with same name does exist in target. |
+| useFqn | `true`, `false` | Set as `true` when asset (rule/workflow/folder) with same name already exists in the target environment. `false` when an asset with same name doesn't exist in target. |
+| Connections | `override` only | Re-link migrated rule in the target to use `newId` (target's connection ID) instead of the `existingId` (source's connection ID). Target connection must already exist. |
+| Parameters | `append`, `override`, `upsert` | `append`: adds new parameter keys to target. `override`: overrides the keys with same name in the target parameter. `upsert`: overwrites all matching keys and appends others. Target parameter must already exist. |
+| Custom fields | `override` only | Overrides the value of the field in the target. Target field must already exist. |
+
+
+#### Examples
+
+> **Note:** `generate-mapping-action` always produces `"useFqn": true` and `"action": "upsert"` for parameters. The examples below reflect that format. If you are writing a mapping file manually, you can adjust these values as needed.
+
+**Example 1 — Rule with no connections or parameters**
+
+A script rule that runs Groovy script and has no data connections, parameters, or custom fields to re-link. The `mapping` object is omitted entirely — only `useFqn` is required.
+
+```json
+{
+  "useFqn": true
+}
+```
+
+**Example 2 — Rule with Connection but no Parameters or Custom Fields**
+
+Your rule uses a Snowflake connection in source. The same database exists in target under a different UUID. The `parameters` and `customFields` arrays are absent because this rule has none to map. If the action cannot match a connection by name and type in the target workspace, it throws an error rather than writing a partial file.
+
+```json
+{
+  "useFqn": true,
+  "mapping": {
+    "connections": [
+      {
+        "existingId": "conn-3e7788a3-69aa-546e-aee0-5e96156b968b",
+        "newId":      "conn-816eb590-ecef-5be3-9258-488e812328d3",
+        "action":     "override"
+      }
+    ]
+  }
+}
+```
+
+**Example 3 — Rule with parameters but no connection**
+
+A script rule that uses configurable parameters but no data connection. The `connections` array is omitted; only parameters are mapped. Every parameter entry requires both `existingId` (source UUID) and `newId` (target UUID).
+
+```json
+{
+  "useFqn": true,
+  "mapping": {
+    "parameters": [
+      {
+        "existingId": "parm-da473fee-a37e-5e9c-ad27-12436271abca",
+        "newId":      "parm-e2d8f6c4-4a3b-5f9c-8d5e-7a9b2c3d4e5f",
+        "action":     "upsert"
+      },
+      {
+        "existingId": "parm-f473tre-a35e-5y7c-af57-12766273fdlp",
+        "newId":      "parm-a8c4e2b6-7d1f-4e9a-b3c5-2f6d8e0a1b3c",
+        "action":     "upsert"
+      }
+    ]
+  }
+}
+```
+
+**Example 4 — Full mapping (connections + parameters + custom fields)**
+
+Custom fields use the field name (not a UUID) for both `existingId` and `newId`. Unmatched custom fields (by name) are silently omitted by the generate-mapping-action.
+
+```json
+{
+  "useFqn": true,
+  "mapping": {
+    "connections": [
+      {
+        "existingId": "conn-b1075c0d-17e6-5cf3-b881-f2b9320f080f",
+        "newId":      "conn-9e4a2f31-88bd-5c1e-a204-7d6e51b3a9c0",
+        "action":     "override"
+      }
+    ],
+    "parameters": [
+      {
+        "existingId": "parm-da473fee-a37e-5e9c-ad27-12436271abca",
+        "newId":      "parm-e2d8f6c4-4a3b-5f9c-8d5e-7a9b2c3d4e5f",
+        "action":     "upsert"
+      }
+    ],
+    "customFields": [
+      {
+        "existingId": "sys_dq_dim",
+        "newId":      "sys_dq_dim",
+        "action":     "override"
+      }
+    ]
+  }
+}
+```
 
 ### Tip: keep mappings under version control
 
 Store mapping files in your repo (e.g., `mappings/qa.json`, `mappings/uat.json`, `mappings/prod.json`) so changes to UUID mappings are auditable and reviewable in PRs.
+
+## Troubleshooting
+
+| Symptom | Likely cause | Fix |
+|---|---|---|
+| `Authentication failed: HTTP 401 from Keycloak` | Wrong client ID/secret, or set on the wrong GitHub Environment | Confirm the service account's credentials are set on the correct GitHub Environment |
+| `Authentication failed: HTTP 401 from Keycloak` | Realm path in `ICEDQ_KEYCLOAK_URL` is wrong | Expected shape: `https://<host>/auth/realms/<realm>` — see [iceDQ Keycloak URL format](#b-icedq-keycloak-url) |
+| `ConstraintViolation: Mapping connection[0].new id ... is not present in the target workspace` | The connection (or custom field) referenced in the mapping file doesn't exist in the target workspace | Connections and custom fields must be **pre-created in the target environment** — they are not auto-created by import |
+| `HTTP 409: Active job blocking` | An export or import is already running in the target workspace | Wait for it to finish, or pass `terminate-on-conflict: true` on `import-action` to cancel it and retry |
+| Import shows `Completed` but rules are missing | Imports are **not atomic** — if rule #37 of 50 fails validation, rules 1–36 commit and 38–50 continue | Check the import log for skipped rules; pass `strict: true` to fail the job on any skip |
+
+## FAQ
+
+**1. Can I run the CLI directly without the Actions?**
+
+Yes. The Actions are convenience wrappers around [`@icedq/cli`](https://www.npmjs.com/package/@icedq/cli) — the CLI is the source of truth. `npm install -g @icedq/cli` and use `icedq export ...` / `icedq generate-mapping ...` / `icedq import ...` from a `run:` step, or anywhere else (Jenkins, Azure DevOps, ad-hoc terminal).
+
+**2. Can I export and import in a single job?**
+
+Yes — you don't need to upload an artifact between jobs if the same job does both. Splitting them across jobs is what gives you per-environment reviewer approval and an artifact for forensics.
+
+**3. Does the Action support GitHub Enterprise Server?**
+
+Yes — all three Actions are pure composite Actions with no GHES-specific code paths. As long as your runners can reach the iceDQ API and Keycloak, GHES works the same as github.com.
 
 ## References
 
