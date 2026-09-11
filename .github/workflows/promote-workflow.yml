@@ -13,7 +13,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  export:
+  export-workflow:
     runs-on: ubuntu-latest
     environment: SOURCE
     timeout-minutes: 45
@@ -35,9 +35,9 @@ jobs:
           artifact-name:   icedq-workflow-bundle
           verify-ssl:      ${{ vars.ICEDQ_VERIFY_SSL }}
 
-  generate-mapping:
+  generate-workflow-mapping:
     runs-on: ubuntu-latest
-    needs: export
+    needs: export-workflow
     environment: TARGET
     timeout-minutes: 30
     steps:
@@ -62,9 +62,9 @@ jobs:
           artifact-name:   icedq-workflow-mapping
           verify-ssl:     ${{ vars.ICEDQ_VERIFY_SSL }}
 
-  import:
+  import-workflow:
     runs-on: ubuntu-latest
-    needs: [export, generate-mapping]
+    needs: [export-workflow, generate-workflow-mapping]
     environment: TARGET
     timeout-minutes: 30
     steps:

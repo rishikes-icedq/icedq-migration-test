@@ -13,7 +13,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  export:
+  export-folder:
     runs-on: ubuntu-latest
     environment: SOURCE
     timeout-minutes: 45
@@ -35,9 +35,9 @@ jobs:
           artifact-name:   icedq-folder-bundle
           verify-ssl:      ${{ vars.ICEDQ_VERIFY_SSL }}
 
-  generate-mapping:
+  generate-folder-mapping:
     runs-on: ubuntu-latest
-    needs: export
+    needs: export-folder
     environment: TARGET
     timeout-minutes: 30
     steps:
@@ -62,9 +62,9 @@ jobs:
           artifact-name:   icedq-folder-mapping
           verify-ssl:     ${{ vars.ICEDQ_VERIFY_SSL }}
 
-  import:
+  import-folder:
     runs-on: ubuntu-latest
-    needs: [export, generate-mapping]
+    needs: [export-folder, generate-folder-mapping]
     environment: TARGET
     timeout-minutes: 30
     steps:
