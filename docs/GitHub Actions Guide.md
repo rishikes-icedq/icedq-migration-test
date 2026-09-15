@@ -40,7 +40,7 @@ You'll need to configure the following as GitHub Environment variables for each 
 
 | Variable | What it is | Where to get it | Required for |
 |---|---|---|---|
-| `ICEDQ_URL` | Base URL of your iceDQ instance | Your browser's address bar when logged in to iceDQ | All actions |
+| `ICEDQ_BASE_URL` | Base URL of your iceDQ instance | Your browser's address bar when logged in to iceDQ | All actions |
 | `ICEDQ_KEYCLOAK_URL` | Keycloak authentication realm URL | Your iceDQ administrator — format: `https://<host>/auth/realms/<realm>` | All actions |
 | `ICEDQ_ORG_ID` | Your iceDQ organization ID | Open any rule → view rule metadata → copy `orgId` | All actions |
 | `ICEDQ_ACCOUNT_ID` | Your iceDQ account ID | Open any rule → view rule metadata → copy `accountId` | All actions |
@@ -130,18 +130,18 @@ jobs:
       - name: Export workflow from DEV environment
         uses: icedq-tools/export-action@v1
         with:
-          icedq-url:       ${{ vars.ICEDQ_URL }}
-          keycloak-url:    ${{ vars.ICEDQ_KEYCLOAK_URL }}
-          org-id:          ${{ vars.ICEDQ_ORG_ID }}
-          client-id:       ${{ secrets.ICEDQ_CLIENT_ID }}
-          client-secret:   ${{ secrets.ICEDQ_CLIENT_SECRET }}
-          account-id:      ${{ vars.ICEDQ_ACCOUNT_ID }}
-          workspace-id:    ${{ vars.ICEDQ_WORKSPACE_ID }}
-          resource:        workflow
-          id:              ${{ vars.FINANCE_WORKFLOW_ID }}
-          include-child:   true
-          output-file:     ./exports/finance.zip
-          artifact-name:   icedq-finance-workflow-bundle
+          icedq-base-url:   ${{ vars.ICEDQ_BASE_URL }}
+          keycloak-url:     ${{ vars.ICEDQ_KEYCLOAK_URL }}
+          org-id:           ${{ vars.ICEDQ_ORG_ID }}
+          client-id:        ${{ secrets.ICEDQ_CLIENT_ID }}
+          client-secret:    ${{ secrets.ICEDQ_CLIENT_SECRET }}
+          account-id:       ${{ vars.ICEDQ_ACCOUNT_ID }}
+          workspace-id:     ${{ vars.ICEDQ_WORKSPACE_ID }}
+          resource:         workflow
+          id:               ${{ vars.FINANCE_WORKFLOW_ID }}
+          include-child:    true
+          output-file:      ./exports/finance.zip
+          artifact-name:    icedq-finance-workflow-bundle
 
   generate-workflow-mapping:
     runs-on: ubuntu-latest
@@ -158,16 +158,16 @@ jobs:
       - name: Generate mapping for UAT environment
         uses: icedq-tools/generate-mapping-action@v1
         with:
-          icedq-url:      ${{ vars.ICEDQ_URL }}
-          keycloak-url:   ${{ vars.ICEDQ_KEYCLOAK_URL }}
-          org-id:         ${{ vars.ICEDQ_ORG_ID }}
-          client-id:      ${{ secrets.ICEDQ_CLIENT_ID }}
-          client-secret:  ${{ secrets.ICEDQ_CLIENT_SECRET }}
-          account-id:     ${{ vars.ICEDQ_ACCOUNT_ID }}
-          workspace-id:   ${{ vars.ICEDQ_WORKSPACE_ID }}
-          bundle:         ./exports/finance.zip
-          output-file:    ./mapping/finance-workflow-mapping.json
-          artifact-name:  icedq-finance-workflow-mapping
+          icedq-base-url:  ${{ vars.ICEDQ_BASE_URL }}
+          keycloak-url:    ${{ vars.ICEDQ_KEYCLOAK_URL }}
+          org-id:          ${{ vars.ICEDQ_ORG_ID }}
+          client-id:       ${{ secrets.ICEDQ_CLIENT_ID }}
+          client-secret:   ${{ secrets.ICEDQ_CLIENT_SECRET }}
+          account-id:      ${{ vars.ICEDQ_ACCOUNT_ID }}
+          workspace-id:    ${{ vars.ICEDQ_WORKSPACE_ID }}
+          bundle:          ./exports/finance.zip
+          output-file:     ./mapping/finance-workflow-mapping.json
+          artifact-name:   icedq-finance-workflow-mapping
 
   import-workflow:
     runs-on: ubuntu-latest
@@ -190,7 +190,7 @@ jobs:
       - name: Import workflow into UAT environment
         uses: icedq-tools/import-action@v1
         with:
-          icedq-url:             ${{ vars.ICEDQ_URL }}
+          icedq-base-url:        ${{ vars.ICEDQ_BASE_URL }}
           keycloak-url:          ${{ vars.ICEDQ_KEYCLOAK_URL }}
           org-id:                ${{ vars.ICEDQ_ORG_ID }}
           client-id:             ${{ secrets.ICEDQ_CLIENT_ID }}
