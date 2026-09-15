@@ -19,21 +19,21 @@ jobs:
     timeout-minutes: 45
     steps:
       - name: Export rule from Source environment
-        uses: icedq-tools/export-action@feature/output-flag-rename   # was @v1
+        uses: icedq-tools/export-action@feature/rename-icedq-base-url   # was @v1
         with:
-          cli-version:     "github:icedq-tools/cli#feature/cli-hardening-and-output-flag-rename"   # was omitted (defaults to 'latest')
-          icedq-url:       ${{ vars.ICEDQ_URL }}
-          keycloak-url:    ${{ vars.ICEDQ_KEYCLOAK_URL }}
-          org-id:          ${{ vars.ICEDQ_ORG_ID }}
-          client-id:       ${{ secrets.ICEDQ_CLIENT_ID }}
-          client-secret:   ${{ secrets.ICEDQ_CLIENT_SECRET }}
-          account-id:      ${{ vars.ICEDQ_ACCOUNT_ID }}
-          workspace-id:    ${{ vars.ICEDQ_WORKSPACE_ID }}
-          resource:        rule
-          id:              ${{ inputs.rule-id }}
-          output-file:     ./exports/bundle.zip
-          artifact-name:   icedq-rule-bundle
-          verify-ssl:      ${{ vars.ICEDQ_VERIFY_SSL }}
+          cli-version:      "github:icedq-tools/cli#feature/rename-icedq-base-url"   # was omitted (defaults to 'latest')
+          icedq-base-url:   ${{ vars.ICEDQ_BASE_URL }}
+          keycloak-url:     ${{ vars.ICEDQ_KEYCLOAK_URL }}
+          org-id:           ${{ vars.ICEDQ_ORG_ID }}
+          client-id:        ${{ secrets.ICEDQ_CLIENT_ID }}
+          client-secret:    ${{ secrets.ICEDQ_CLIENT_SECRET }}
+          account-id:       ${{ vars.ICEDQ_ACCOUNT_ID }}
+          workspace-id:     ${{ vars.ICEDQ_WORKSPACE_ID }}
+          resource:         rule
+          id:               ${{ inputs.rule-id }}
+          output-file:      ./exports/bundle.zip
+          artifact-name:    icedq-rule-bundle
+          verify-ssl:       ${{ vars.ICEDQ_VERIFY_SSL }}
 
   generate-rule-mapping:
     runs-on: ubuntu-latest
@@ -48,20 +48,20 @@ jobs:
           path: ./exports
 
       - name: Generate mapping for Target environment
-        uses: icedq-tools/generate-mapping-action@feature/output-flag-rename   # was @v1
+        uses: icedq-tools/generate-mapping-action@feature/rename-icedq-base-url   # was @v1
         with:
-          cli-version:     "github:icedq-tools/cli#feature/cli-hardening-and-output-flag-rename"   # was omitted (defaults to 'latest')
-          icedq-url:       ${{ vars.ICEDQ_URL }}
-          keycloak-url:    ${{ vars.ICEDQ_KEYCLOAK_URL }}
-          org-id:          ${{ vars.ICEDQ_ORG_ID }}
-          client-id:       ${{ secrets.ICEDQ_CLIENT_ID }}
-          client-secret:   ${{ secrets.ICEDQ_CLIENT_SECRET }}
-          account-id:      ${{ vars.ICEDQ_ACCOUNT_ID }}
-          workspace-id:    ${{ vars.ICEDQ_WORKSPACE_ID }}
-          bundle:          ./exports/bundle.zip
-          output-file:     ./mapping/rule-migration-mapping.json
-          artifact-name:   icedq-rule-mapping
-          verify-ssl:      ${{ vars.ICEDQ_VERIFY_SSL }}
+          cli-version:      "github:icedq-tools/cli#feature/rename-icedq-base-url"   # was omitted (defaults to 'latest')
+          icedq-base-url:   ${{ vars.ICEDQ_BASE_URL }}
+          keycloak-url:     ${{ vars.ICEDQ_KEYCLOAK_URL }}
+          org-id:           ${{ vars.ICEDQ_ORG_ID }}
+          client-id:        ${{ secrets.ICEDQ_CLIENT_ID }}
+          client-secret:    ${{ secrets.ICEDQ_CLIENT_SECRET }}
+          account-id:       ${{ vars.ICEDQ_ACCOUNT_ID }}
+          workspace-id:     ${{ vars.ICEDQ_WORKSPACE_ID }}
+          bundle:           ./exports/bundle.zip
+          output-file:      ./mapping/rule-migration-mapping.json
+          artifact-name:    icedq-rule-mapping
+          verify-ssl:       ${{ vars.ICEDQ_VERIFY_SSL }}
 
   import-rule:
     runs-on: ubuntu-latest
@@ -82,10 +82,10 @@ jobs:
           path: ./mapping
 
       - name: Import rule into Target environment
-        uses: icedq-tools/import-action@feature/output-flag-rename   # was @v1
+        uses: icedq-tools/import-action@feature/rename-icedq-base-url   # was @v1
         with:
-          cli-version:     "github:icedq-tools/cli#feature/cli-hardening-and-output-flag-rename"   # was omitted (defaults to 'latest')
-          icedq-url:             ${{ vars.ICEDQ_URL }}
+          cli-version:     "github:icedq-tools/cli#feature/rename-icedq-base-url"   # was omitted (defaults to 'latest')
+          icedq-base-url:        ${{ vars.ICEDQ_BASE_URL }}
           keycloak-url:          ${{ vars.ICEDQ_KEYCLOAK_URL }}
           org-id:                ${{ vars.ICEDQ_ORG_ID }}
           client-id:             ${{ secrets.ICEDQ_CLIENT_ID }}
