@@ -21,7 +21,7 @@ jobs:
       - name: Export workflow from Source environment
         uses: icedq-tools/export-action@v1
         with:
-          icedq-url:       ${{ vars.ICEDQ_URL }}
+          icedq-url:       ${{ vars.ICEDQ_BASE_URL }}
           keycloak-url:    ${{ vars.ICEDQ_KEYCLOAK_URL }}
           org-id:          ${{ vars.ICEDQ_ORG_ID }}
           client-id:       ${{ secrets.ICEDQ_CLIENT_ID }}
@@ -50,7 +50,7 @@ jobs:
       - name: Generate mapping for Target environment
         uses: icedq-tools/generate-mapping-action@v1
         with:
-          icedq-url:      ${{ vars.ICEDQ_URL }}
+          icedq-url:      ${{ vars.ICEDQ_BASE_URL }}
           keycloak-url:   ${{ vars.ICEDQ_KEYCLOAK_URL }}
           org-id:         ${{ vars.ICEDQ_ORG_ID }}
           client-id:      ${{ secrets.ICEDQ_CLIENT_ID }}
@@ -83,7 +83,7 @@ jobs:
       - name: Import workflow into Target environment
         uses: icedq-tools/import-action@v1
         with:
-          icedq-url:             ${{ vars.ICEDQ_URL }}
+          icedq-url:             ${{ vars.ICEDQ_BASE_URL }}
           keycloak-url:          ${{ vars.ICEDQ_KEYCLOAK_URL }}
           org-id:                ${{ vars.ICEDQ_ORG_ID }}
           client-id:             ${{ secrets.ICEDQ_CLIENT_ID }}
