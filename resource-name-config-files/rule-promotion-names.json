@@ -1,12 +1,18 @@
 {
   "connections": {
-    "example_connection": {
-      "UAT": "sqlserver-lineage-conn-uat",
-      "PROD": "sqlserver-lineage-conn-prod"
+    "etl-1-sqlserver": {
+      "UAT": "sqlserver-uat",
+      "QA": "sqlserver-qa",
+      "PROD": "sqlserver-prod"
+    },
+    "etl-2-oracle": {
+      "UAT": "oracle-uat",
+      "QA": "oracle-qa",
+      "PROD": "oracle-prod"
     }
   },
   "parameters": {
-    "example_parameter_set": {
+    "etl-parameters": {
       "UAT": "parameters_set_1-uat",
       "PROD": "parameters_set_1-prod"
     }
