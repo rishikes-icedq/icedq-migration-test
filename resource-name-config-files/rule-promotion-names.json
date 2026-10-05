@@ -1,0 +1,14 @@
+{
+  "connections": {
+    "example_connection": {
+      "UAT": "sqlserver-lineage-conn-uat",
+      "PROD": "sqlserver-lineage-conn-prod"
+    }
+  },
+  "parameters": {
+    "example_parameter_set": {
+      "UAT": "parameters_set_1-uat",
+      "PROD": "parameters_set_1-prod"
+    }
+  }
+}
